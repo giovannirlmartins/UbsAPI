@@ -13,7 +13,7 @@ namespace UbsAPI.Controllers
         MedicoService medicoFuncao = new MedicoService();
 
         // GET: api/<AgendamentoController>
-        [HttpGet]
+        [HttpGet("listamedicos")]
         public IActionResult GetListarMedicos()
         {
             List<MedicoModel> listaMedicoController = medicoFuncao.ListarMedicos();
@@ -32,30 +32,41 @@ namespace UbsAPI.Controllers
             return BadRequest();
         }
 
+        [HttpPost]
+        public IActionResult CadastrarMedico([FromBody] MedicoModel medico)
+        {
+            bool situacaoCadastro = medicoFuncao.CadastrarMedico(medico);
+            if (situacaoCadastro)
+            {
+                return Created("api/Medico/listamedicos", medico);
+            }
+            return BadRequest("Médico já cadastrado!");
+        }
 
 
-        // POST api/<AgendamentoController>
-        //[HttpPost]
-        //public string Post([FromBody] string value)
-        //{
-        //    if (medicoFuncao.CadastrarMedico())
-        //    {
-        //        return "Cadastro realizado com sucesso!";
-        //    }
-        //    return "Cadastro não realizado.";
-        //}
 
         // PUT api/<AgendamentoController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut("{crm}")]
+        public IActionResult EditarMedico(string crm, [FromBody] MedicoModel medicoEditado)
         {
+            bool situacaoEditar = medicoFuncao.EditarMedico(crm, medicoEditado);
+            if (situacaoEditar)
+            {
+                return Ok("Medico Editado com sucesso!");
+            }
+            return BadRequest("CRM não encontrado!");
         }
 
         // DELETE api/<AgendamentoController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("{crm}")]
+        public IActionResult DeletarMedico(string crm)
         {
-           
+            bool situacaoDeletar = medicoFuncao.ApagarMedico(crm);
+            if (situacaoDeletar)
+            {
+                return NoContent();
+            }
+            return BadRequest("CRM não encontrado");
         }
     }
 }

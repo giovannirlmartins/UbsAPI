@@ -46,19 +46,49 @@ namespace UbsAPI.Services
         }
 
         //Cadastrar Médico
-        public bool CadastrarMedico (MedicoModel novoMedico)
+        public bool CadastrarMedico (MedicoModel medicoCadastrar)
         {
-            if (ValidarMedico(novoMedico.Crm))
+            if (ValidarMedico(medicoCadastrar.Crm) == true)
             {
-                return false;
+                return false; //indica médico não cadastrado pois já existe no sistema;
             }
-            _ListaMedicos.Add(novoMedico);
-            return true;
+
+            _ListaMedicos.Add(medicoCadastrar);
+            return true; // indica médico cadastrado;
         }
 
         //Editar Médico
 
+        public bool EditarMedico(string crmEditar, MedicoModel medicoEditar)
+        {
+            foreach (MedicoModel medico in _ListaMedicos)
+            {
+                if(medico.Crm == crmEditar)
+                {
+                    medico.Crm = medicoEditar.Crm;
+                    medico.Nome = medicoEditar.Nome;
+                    medico.Telefone = medicoEditar.Telefone;
+                    medico.Especialidade = medicoEditar.Especialidade;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         //Excluir Médico
+        public bool ApagarMedico(string crm)
+        {
+            foreach (MedicoModel medico in _ListaMedicos)
+            {
+                if(medico.Crm == crm)
+                {
+                    _ListaMedicos.Remove(medico);
+                    return true;
+                }
+            }
+            return false;
+        }
 
         //Listar Médicos
         public List<MedicoModel> ListarMedicos()
