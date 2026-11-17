@@ -4,6 +4,7 @@ namespace UbsAPI.Models
 {
     public class MedicoModel
     {
+        [Key]
         [Required]
         public string? Crm {  get; set; }
         public string? Nome { get; set; }

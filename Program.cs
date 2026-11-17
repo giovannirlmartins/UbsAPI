@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using UbsAPI.Data;
 
 namespace UbsAPI
 {
@@ -7,12 +9,17 @@ namespace UbsAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
 
+            // Add services to the container.
+            
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
             builder.Services.AddSwaggerGen();
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.AddDbContext<UbsDbContext>(options => options.UseMySQL(connectionString));
+
 
             var app = builder.Build();
 

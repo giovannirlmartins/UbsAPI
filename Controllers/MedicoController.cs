@@ -1,72 +1,96 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using UbsAPI.Services;
+﻿
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using UbsAPI.Data;
 using UbsAPI.Models;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace UbsAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class MedicoController : ControllerBase
+    [Route("api/[controller]")]
+    public class MedicosController : ControllerBase
     {
-        MedicoService medicoFuncao = new MedicoService();
+        private readonly UbsDbContext _context;
 
-        // GET: api/<AgendamentoController>
-        [HttpGet("listamedicos")]
-        public IActionResult GetListarMedicos()
-        {
-            List<MedicoModel> listaMedicoController = medicoFuncao.ListarMedicos();
-            return Ok(listaMedicoController);
-        }
-
-        // GET api/<AgendamentoController>/5
-        [HttpGet("{crm}")]
-        public IActionResult GetMedico(string crm)
-        {
-            MedicoModel medicoEncontrado = medicoFuncao.BuscarMedico(crm);
-            if (medicoEncontrado != null)
-            {
-                return Ok(medicoEncontrado);
-            }
-            return BadRequest();
-        }
+        public MedicosController(UbsDbContext context) => _context = context;
 
         [HttpPost]
-        public IActionResult CadastrarMedico([FromBody] MedicoModel medico)
+        public async Task<IActionResult> PostMedico(MedicoModel medico)
         {
-            bool situacaoCadastro = medicoFuncao.CadastrarMedico(medico);
-            if (situacaoCadastro)
-            {
-                return Created("api/Medico/listamedicos", medico);
-            }
-            return BadRequest("Médico já cadastrado!");
+            await _context.Medicos.AddAsync(medico);
+
+            await _context.SaveChangesAsync();
+
+            return Created();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetMedicos()
+        {
+            var medicos = await _context.Medicos.ToListAsync();
 
+            return Ok(medicos);
+        }
 
-        // PUT api/<AgendamentoController>/5
+        [HttpGet("{crm}")]
+        public async Task<IActionResult> GetMedico(string crm)
+        {
+            var listaMedicos = await _context.Medicos.ToListAsync();
+
+            MedicoModel medicoEncontrado = new MedicoModel();
+
+            foreach (var medico in listaMedicos)
+            {
+                if (medico.Crm == crm)
+                {
+                    return Ok(medicoEncontrado);
+                }
+
+            }
+            return NotFound("Médico não encontrado!");
+        }
+
         [HttpPut("{crm}")]
-        public IActionResult EditarMedico(string crm, [FromBody] MedicoModel medicoEditado)
+        public async Task<IActionResult> PutMedico(string crm, [FromBody] MedicoModel medicoAtualizado)
         {
-            bool situacaoEditar = medicoFuncao.EditarMedico(crm, medicoEditado);
-            if (situacaoEditar)
+
+            var medicos = await _context.Medicos.ToListAsync();
+
+            foreach (var medico in medicos)
             {
-                return Ok("Medico Editado com sucesso!");
+                if (medico.Crm == crm)
+                {
+                    medico.Nome = medicoAtualizado.Nome;
+                    medico.Telefone = medicoAtualizado.Telefone;
+                    medico.Especialidade = medicoAtualizado.Especialidade;
+
+                    await _context.SaveChangesAsync();
+
+                    return Ok(medico);
+                }
             }
-            return BadRequest("CRM não encontrado!");
+
+            return NotFound("Médico não encontrado.");
         }
 
-        // DELETE api/<AgendamentoController>/5
         [HttpDelete("{crm}")]
-        public IActionResult DeletarMedico(string crm)
+        public async Task<IActionResult> DeleteMedico(string crm)
         {
-            bool situacaoDeletar = medicoFuncao.ApagarMedico(crm);
-            if (situacaoDeletar)
+            var medicos = await _context.Medicos.ToListAsync();
+
+            MedicoModel medicoEncontrado = new MedicoModel();
+
+            foreach (var medico in medicos)
             {
-                return NoContent();
+                if (medico.Crm == crm)
+                {
+                    _context.Medicos.Remove(medico);
+                    await _context.SaveChangesAsync();
+                    return Ok("Médico excluído com sucesso!");
+                }
             }
-            return BadRequest("CRM não encontrado");
+
+            return NotFound("Médico não encontrado.");
         }
     }
 }
